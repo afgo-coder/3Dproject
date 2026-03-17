@@ -1,0 +1,380 @@
+fileFormatVersion: 2
+guid: 121a493be48c0814fb465239aab90adb
+ModelImporter:
+  serializedVersion: 24200
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material
+    second: {fileID: 2100000, guid: 2aefbcd40dc5a134ead816cd490344ec, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: armorarm
+    second: {fileID: 2100000, guid: b1f2c0e339f57334bb9c875cb4d1522c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: armorhelmet
+    second: {fileID: 2100000, guid: 2c7d807324af60a4dbfd97604d211eb7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: armorlegs
+    second: {fileID: 2100000, guid: bea6f14421b12a74ab2f8d1c0c317b18, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: armorplastron
+    second: {fileID: 2100000, guid: adfb27218af936046a1c2769324653a4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: armorshoe
+    second: {fileID: 2100000, guid: 07f8d1d1230fc1c4d919c120c922b25d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: armorskirt
+    second: {fileID: 2100000, guid: 08c4943ad7ac677479a479d672195b4c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: armorthights
+    second: {fileID: 2100000, guid: 9bb6dbd1490c5ab419574d80ae6d5969, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: character
+    second: {fileID: 2100000, guid: a87a524ae84358246b2c33763ac871e0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: eyebrows
+    second: {fileID: 2100000, guid: f7b5cf8443cde25449c05c6ab6974bc1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: greenbottes
+    second: {fileID: 2100000, guid: b11d0d1cae36ccd47b784fddc3052825, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: greenoutfit
+    second: {fileID: 2100000, guid: 4d802a11919f28943b78302101f5af26, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: hairone
+    second: {fileID: 2100000, guid: 2837f50427707504ea0d4356d0079d4f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: hairt
+    second: {fileID: 2100000, guid: 6ced801d162b5d9468b6d5fbc06f9d04, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: hairtail
+    second: {fileID: 2100000, guid: f972b317e1bb1c84f83aa132d2d3dc98, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: hairtailknight
+    second: {fileID: 2100000, guid: ab1becf36c5b1d14ca960e366cbfb38a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: hairtvariant
+    second: {fileID: 2100000, guid: 21f4cc26c4a1f9643bd0609cd0b2c1ee, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ninjashort
+    second: {fileID: 2100000, guid: 80ff48a16bf120c49a0296ecbec1d5dc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ninjasuit
+    second: {fileID: 2100000, guid: 98fb57d57657c6d42af97a7994b61349, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: schoolbag
+    second: {fileID: 2100000, guid: 7afb3627b42e01a429b00558cf4984a5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: schoolshirt
+    second: {fileID: 2100000, guid: 03ee0f60eab97e845a0fe6e177b43137, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: schoolshoe
+    second: {fileID: 2100000, guid: 52182cf78a6b91f4db46383a48989910, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: schoolskirt
+    second: {fileID: 2100000, guid: 47a80570c6d610b4c917bdefa5006277, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: thirdsuitbottes
+    second: {fileID: 2100000, guid: f67e5f48ad8da754abaadd145e5c1a0d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: thirdsuitchemise
+    second: {fileID: 2100000, guid: 44acba15faa3c2f4aa83235d5a95d2fa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: thirdsuitpants
+    second: {fileID: 2100000, guid: 61a65094fbed5ff498ae69621fa0e6d3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: thridsuithat
+    second: {fileID: 2100000, guid: ca45608117d245040b6adb60d7ba81aa, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: amorplastron_color
+    second: {fileID: 2800000, guid: 42e45266b9925de4b8e3db1484b54847, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: armorarm_color
+    second: {fileID: 2800000, guid: cc0ba3eedc0455040b447c866b8c3830, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: armorhelmet_Color_001
+    second: {fileID: 2800000, guid: 507421f1d49c13b46b72c49b7b0d0f57, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: armorlegs_color
+    second: {fileID: 2800000, guid: 9a99f5afb8f3e414783e54eb6e5b2ff6, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: armorshoe_color
+    second: {fileID: 2800000, guid: ecc35174628186c4d902d62210d33082, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: armorskirtF_color
+    second: {fileID: 2800000, guid: 9252ad86dc31ec04b8ad81e9a1dbb097, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: armorthights_color
+    second: {fileID: 2800000, guid: e653487cbfc67c0448c1993b65d26544, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: bagtextureF_color
+    second: {fileID: 2800000, guid: 09fb936e92fa4ee44809ae5c12f58787, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: bottes_color
+    second: {fileID: 2800000, guid: 900974ca6677d204080cee1b5b7da745, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: bottesgreen_color
+    second: {fileID: 2800000, guid: 81dfe017bba43ab4b8cea7d206909064, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: ceinture
+    second: {fileID: 2800000, guid: fd1da21944d0168489c473d38e0600ca, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: characterw_color
+    second: {fileID: 2800000, guid: 9fa368e2f25fb7c4281bd835fb36cf38, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: chemise_color
+    second: {fileID: 2800000, guid: 866c2f001d354a349a972d8383aaa0a7, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: greenoutfitbase_color
+    second: {fileID: 2800000, guid: 8dc87d586fc92e64989113797ee47bf9, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: hairTF_color
+    second: {fileID: 2800000, guid: 3cf884efc1a0e9a4ba454f9f63c7ed17, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: hairTFvariant_color
+    second: {fileID: 2800000, guid: b46f0beb9e3d2da438a5d3f02b6f7e58, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: hairone_color
+    second: {fileID: 2800000, guid: c111f1fe9117f94419cf1563ae5e63a9, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: hairtailF_color
+    second: {fileID: 2800000, guid: 9d5666e73f4041044a6f8ae22d5624c3, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: hairtailFknight_color
+    second: {fileID: 2800000, guid: be67e0aa6f335ce41955b8985dd76e27, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: hat_color
+    second: {fileID: 2800000, guid: d0fe34ad672875a47bb3fcf0c0bf1cc4, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: ninjasuit_color
+    second: {fileID: 2800000, guid: 57a33f0dd798d9b47a97942535f11042, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: pants_color
+    second: {fileID: 2800000, guid: 5094b5a5ee7cc82408a5edc061404d3e, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: shirtF_color
+    second: {fileID: 2800000, guid: 8e8bfcfed0e9ce94b968b17ebe12bdd9, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: shoe Layer
+    second: {fileID: 2800000, guid: a9524f61eefef674c84d6f3cc2c5c50a, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: short_color
+    second: {fileID: 2800000, guid: 54dac9b375ceceb4d97c16ff145238c3, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: skir_color
+    second: {fileID: 2800000, guid: 5a997aed344b66f4e979545ac09c0fb2, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: yeux
+    second: {fileID: 2800000, guid: 009c78ba5d968cd46aeb57adbf96e8b3, type: 3}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importPhysicalCameras: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    strictVertexDataChecks: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 1
+  remapMaterialsIfMaterialImportModeIsNone: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

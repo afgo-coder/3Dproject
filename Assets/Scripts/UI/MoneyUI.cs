@@ -1,4 +1,4 @@
-using MiniMart.Managers;
+﻿using MiniMart.Managers;
 using UnityEngine;
 using UnityEngine.UI;
 

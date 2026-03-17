@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using MiniMart.Customer;
+using MiniMart.Data;
 using MiniMart.Managers;
 using MiniMart.UI;
 using UnityEngine;
@@ -8,36 +9,86 @@ namespace MiniMart.Interaction
 {
     public class CheckoutCounter : Interactable
     {
+        [SerializeField] private Transform customerStandPoint;
+        [SerializeField] private float checkoutRange = 0.35f;
+
         private readonly Queue<CustomerAI> _waitingCustomers = new Queue<CustomerAI>();
+        private readonly HashSet<CustomerAI> _readyCustomers = new HashSet<CustomerAI>();
 
         public override string GetInteractionPrompt()
         {
-            return _waitingCustomers.Count > 0
-                ? $"[E] 계산하기 ({_waitingCustomers.Count}명 대기 중)"
-                : "[E] 계산대 (대기 손님 없음)";
+            return _readyCustomers.Count > 0
+                ? $"[E] 계산하기 ({_readyCustomers.Count}명 대기 중)"
+                : "[E] 계산대 (도착한 손님 없음)";
         }
 
         public override void Interact(GameObject interactor)
         {
+            RemoveInvalidCustomers();
             if (_waitingCustomers.Count == 0)
             {
-                UIFeedback.ShowStatus("계산대에 대기 중인 손님이 없습니다.");
+                UIFeedback.ShowStatus("계산대 앞에 도착한 손님이 없습니다.");
                 return;
             }
 
             CustomerAI customer = _waitingCustomers.Dequeue();
+            _readyCustomers.Remove(customer);
             int totalPrice = customer.GetBasketPrice();
+            List<ProductData> soldProducts = customer.GetBasketProducts();
+
             EconomyManager.Instance?.AddSale(totalPrice);
+            if (EconomyManager.Instance != null)
+            {
+                for (int i = 0; i < soldProducts.Count; i++)
+                {
+                    EconomyManager.Instance.RecordProductSale(soldProducts[i]);
+                }
+            }
+
             customer.CompleteCheckout();
             UIFeedback.ShowStatus($"결제가 완료되었습니다. +{totalPrice:N0}원");
         }
 
-        public void RegisterCustomer(CustomerAI customer)
+        public void NotifyCustomerArrived(CustomerAI customer)
         {
-            if (customer != null && !_waitingCustomers.Contains(customer))
+            if (customer == null || _readyCustomers.Contains(customer))
             {
-                _waitingCustomers.Enqueue(customer);
-                UIFeedback.ShowStatus("손님이 계산대에서 기다리고 있습니다.");
+                return;
+            }
+
+            if (!IsCustomerAtCounter(customer))
+            {
+                return;
+            }
+
+            _readyCustomers.Add(customer);
+            _waitingCustomers.Enqueue(customer);
+            UIFeedback.ShowStatus("손님이 계산대 앞에 도착했습니다.");
+        }
+
+        public Vector3 GetCustomerStandPosition()
+        {
+            return customerStandPoint != null ? customerStandPoint.position : transform.position;
+        }
+
+        public bool IsCustomerAtCounter(CustomerAI customer)
+        {
+            if (customer == null)
+            {
+                return false;
+            }
+
+            Vector3 targetPosition = GetCustomerStandPosition();
+            Vector3 currentPosition = customer.transform.position;
+            currentPosition.y = targetPosition.y;
+            return Vector3.Distance(currentPosition, targetPosition) <= checkoutRange;
+        }
+
+        private void RemoveInvalidCustomers()
+        {
+            while (_waitingCustomers.Count > 0 && _waitingCustomers.Peek() == null)
+            {
+                _waitingCustomers.Dequeue();
             }
         }
     }

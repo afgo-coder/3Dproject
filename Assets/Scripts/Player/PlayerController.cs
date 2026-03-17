@@ -1,3 +1,4 @@
+﻿using MiniMart.Core;
 using UnityEngine;
 
 namespace MiniMart.Player
@@ -15,12 +16,15 @@ namespace MiniMart.Player
         private void Awake()
         {
             _characterController = GetComponent<CharacterController>();
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
         }
 
         private void Update()
         {
+            if (GameManager.Instance != null && (!GameManager.Instance.IsDayRunning || GameManager.Instance.IsModalOpen))
+            {
+                return;
+            }
+
             HandleLook();
             HandleMovement();
         }

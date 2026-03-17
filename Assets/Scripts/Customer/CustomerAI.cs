@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using MiniMart.Data;
 using MiniMart.Interaction;
 using UnityEngine;
@@ -9,6 +10,8 @@ namespace MiniMart.Customer
     [RequireComponent(typeof(NavMeshAgent))]
     public class CustomerAI : MonoBehaviour
     {
+        private const string SpeedParameter = "Speed";
+
         private enum CustomerState
         {
             Browsing,
@@ -20,17 +23,21 @@ namespace MiniMart.Customer
         [SerializeField] private Shelf targetShelf;
         [SerializeField] private CheckoutCounter checkoutCounter;
 
-        private readonly System.Collections.Generic.List<ProductData> _basket = new System.Collections.Generic.List<ProductData>();
+        private readonly List<ProductData> _basket = new List<ProductData>();
         private NavMeshAgent _agent;
+        private Animator _animator;
         private CustomerTypeData _customerType;
+        private ProductData _targetProduct;
         private Transform _exitPoint;
         private Action<CustomerAI> _onExited;
         private CustomerState _state;
         private float _browseTimer;
+        private bool _hasQueuedAtCheckout;
 
         private void Awake()
         {
             _agent = GetComponent<NavMeshAgent>();
+            _animator = GetComponentInChildren<Animator>();
         }
 
         public void Initialize(CustomerTypeData customerType, Transform exitPoint, Action<CustomerAI> onExited)
@@ -38,6 +45,7 @@ namespace MiniMart.Customer
             _customerType = customerType;
             _exitPoint = exitPoint;
             _onExited = onExited;
+            _hasQueuedAtCheckout = false;
 
             if (_customerType != null)
             {
@@ -54,6 +62,8 @@ namespace MiniMart.Customer
 
         private void Update()
         {
+            UpdateAnimation();
+
             switch (_state)
             {
                 case CustomerState.Browsing:
@@ -75,6 +85,7 @@ namespace MiniMart.Customer
         {
             targetShelf = shelf;
             checkoutCounter = counter;
+            _targetProduct = shelf != null ? shelf.AssignedProduct : null;
         }
 
         public void ReceiveProduct(ProductData product)
@@ -94,6 +105,11 @@ namespace MiniMart.Customer
             }
 
             return total;
+        }
+
+        public List<ProductData> GetBasketProducts()
+        {
+            return new List<ProductData>(_basket);
         }
 
         public void CompleteCheckout()
@@ -133,8 +149,7 @@ namespace MiniMart.Customer
 
             if (checkoutCounter != null)
             {
-                checkoutCounter.RegisterCustomer(this);
-                _agent.SetDestination(checkoutCounter.transform.position);
+                _agent.SetDestination(checkoutCounter.GetCustomerStandPosition());
                 _state = CustomerState.GoingToCheckout;
             }
             else
@@ -145,9 +160,15 @@ namespace MiniMart.Customer
 
         private void UpdateGoingToCheckout()
         {
-            if (_agent.pathPending || _agent.remainingDistance > 1.25f)
+            if (_agent.pathPending || _agent.remainingDistance > 0.25f)
             {
                 return;
+            }
+
+            if (!_hasQueuedAtCheckout && checkoutCounter != null && checkoutCounter.IsCustomerAtCounter(this))
+            {
+                checkoutCounter.NotifyCustomerArrived(this);
+                _hasQueuedAtCheckout = true;
             }
         }
 
@@ -171,5 +192,19 @@ namespace MiniMart.Customer
 
             _state = CustomerState.Leaving;
         }
+
+        private void UpdateAnimation()
+        {
+            if (_animator == null)
+            {
+                return;
+            }
+
+            float speed = _agent.velocity.magnitude;
+            _animator.SetFloat(SpeedParameter, speed);
+        }
+
+        public CustomerTypeData CustomerType => _customerType;
+        public ProductData TargetProduct => _targetProduct;
     }
 }

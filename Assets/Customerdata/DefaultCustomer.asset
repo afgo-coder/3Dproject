@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91e04bfbe9426cd4b9032a8b26cc4f59, type: 3}
+  m_Name: DefaultCustomer
+  m_EditorClassIdentifier: Assembly-CSharp::MiniMart.Data.CustomerTypeData
+  typeName: Default Customer
+  walkSpeed: 2
+  browseDuration: 2
+  customerPrefabOverride: {fileID: 7676689641412827411, guid: 209167fde2e8adc438e46b58a9039bf1, type: 3}
+  preferredProducts:
+  - product: {fileID: 11400000, guid: 1621ef11116d4d24180927705144bab9, type: 2}
+    weight: 1
+  - product: {fileID: 11400000, guid: ef2173b19e1f2b74ea1a2ac94c3479d2, type: 2}
+    weight: 1
+  - product: {fileID: 11400000, guid: bb5e57d30305f2a46969b0cd31af7efc, type: 2}
+    weight: 1
+  - product: {fileID: 11400000, guid: a5486e675d9c9984eab02b6b65a2edf0, type: 2}
+    weight: 1

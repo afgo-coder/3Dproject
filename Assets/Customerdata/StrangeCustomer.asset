@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91e04bfbe9426cd4b9032a8b26cc4f59, type: 3}
+  m_Name: StrangeCustomer
+  m_EditorClassIdentifier: Assembly-CSharp::MiniMart.Data.CustomerTypeData
+  typeName: Strange
+  walkSpeed: 0.8
+  browseDuration: 2
+  customerPrefabOverride: {fileID: -2017682559718553613, guid: d6dbc3d287d077544b124046944764ce, type: 3}
+  preferredProducts:
+  - product: {fileID: 11400000, guid: 1621ef11116d4d24180927705144bab9, type: 2}
+    weight: 10

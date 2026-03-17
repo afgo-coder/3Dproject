@@ -1,3 +1,4 @@
+﻿using MiniMart.Core;
 using MiniMart.Data;
 using MiniMart.Interaction;
 using MiniMart.UI;
@@ -17,6 +18,12 @@ namespace MiniMart.Player
 
         private void Update()
         {
+            if (GameManager.Instance != null && (!GameManager.Instance.IsDayRunning || GameManager.Instance.IsModalOpen))
+            {
+                UIFeedback.SetInteractionPrompt(string.Empty);
+                return;
+            }
+
             UpdateFocus();
 
             if (Input.GetKeyDown(KeyCode.E))

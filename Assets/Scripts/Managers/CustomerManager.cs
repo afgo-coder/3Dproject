@@ -1,6 +1,8 @@
+﻿using MiniMart.Core;
 using MiniMart.Customer;
 using MiniMart.Data;
 using MiniMart.Interaction;
+using MiniMart.UI;
 using UnityEngine;
 
 namespace MiniMart.Managers
@@ -28,7 +30,7 @@ namespace MiniMart.Managers
         private void Update()
         {
             DayCycleManager dayCycle = FindFirstObjectByType<DayCycleManager>();
-            if (dayCycle == null || !dayCycle.IsRunning || customerPrefab == null || spawnPoints.Length == 0 || _aliveCustomers >= maxCustomers)
+            if (dayCycle == null || !dayCycle.IsRunning || dayCycle.IsPreparationDay || customerPrefab == null || spawnPoints.Length == 0 || _aliveCustomers >= maxCustomers)
             {
                 return;
             }
@@ -47,11 +49,103 @@ namespace MiniMart.Managers
         private void SpawnCustomer()
         {
             Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-            CustomerAI customer = Instantiate(customerPrefab, spawnPoint.position, spawnPoint.rotation);
             CustomerTypeData type = customerTypes.Length > 0 ? customerTypes[Random.Range(0, customerTypes.Length)] : null;
+            CustomerAI prefabToSpawn = type != null && type.customerPrefabOverride != null ? type.customerPrefabOverride : customerPrefab;
+            if (prefabToSpawn == null)
+            {
+                return;
+            }
+
+            CustomerAI customer = Instantiate(prefabToSpawn, spawnPoint.position, spawnPoint.rotation);
             customer.Initialize(type, exitPoint, HandleCustomerExited);
-            customer.SetShoppingTargets(GetRandomAvailableShelf(), _checkoutCounter);
+
+            Shelf targetShelf = GetShelfForCustomer(type);
+            customer.SetShoppingTargets(targetShelf, _checkoutCounter);
+            UIFeedback.ShowStatus(BuildSpawnMessage(type, targetShelf));
             _aliveCustomers++;
+        }
+
+        private Shelf GetShelfForCustomer(CustomerTypeData customerType)
+        {
+            Shelf preferredShelf = GetWeightedRandomPreferredShelf(customerType);
+            if (preferredShelf != null)
+            {
+                return preferredShelf;
+            }
+
+            return GetRandomAvailableShelf();
+        }
+
+        private Shelf GetWeightedRandomPreferredShelf(CustomerTypeData customerType)
+        {
+            if (customerType == null || customerType.PreferredProducts == null || customerType.PreferredProducts.Length == 0)
+            {
+                return null;
+            }
+
+            ProductWeight[] preferredProducts = customerType.PreferredProducts;
+            Shelf[] candidateShelves = new Shelf[preferredProducts.Length];
+            float[] candidateWeights = new float[preferredProducts.Length];
+            int candidateCount = 0;
+            float totalWeight = 0f;
+
+            for (int i = 0; i < preferredProducts.Length; i++)
+            {
+                ProductWeight preferred = preferredProducts[i];
+                if (preferred.product == null || preferred.weight <= 0f)
+                {
+                    continue;
+                }
+
+                Shelf shelf = FindShelfByProduct(preferred.product);
+                if (shelf == null)
+                {
+                    continue;
+                }
+
+                candidateShelves[candidateCount] = shelf;
+                candidateWeights[candidateCount] = preferred.weight;
+                totalWeight += preferred.weight;
+                candidateCount++;
+            }
+
+            if (candidateCount == 0 || totalWeight <= 0f)
+            {
+                return null;
+            }
+
+            float roll = Random.Range(0f, totalWeight);
+            float accumulated = 0f;
+
+            for (int i = 0; i < candidateCount; i++)
+            {
+                accumulated += candidateWeights[i];
+                if (roll <= accumulated)
+                {
+                    return candidateShelves[i];
+                }
+            }
+
+            return candidateShelves[candidateCount - 1];
+        }
+
+        private Shelf FindShelfByProduct(ProductData product)
+        {
+            if (product == null || _shelves == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < _shelves.Length; i++)
+            {
+                Shelf shelf = _shelves[i];
+                if (shelf != null && shelf.AssignedProduct == product && shelf.CurrentStock > 0)
+                {
+                    return shelf;
+                }
+            }
+
+            return null;
         }
 
         private Shelf GetRandomAvailableShelf()
@@ -72,6 +166,18 @@ namespace MiniMart.Managers
             }
 
             return _shelves[startIndex];
+        }
+
+        private string BuildSpawnMessage(CustomerTypeData customerType, Shelf targetShelf)
+        {
+            string customerName = customerType != null && !string.IsNullOrWhiteSpace(customerType.typeName)
+                ? customerType.typeName
+                : "일반 손님";
+            string productName = targetShelf != null && targetShelf.AssignedProduct != null
+                ? targetShelf.AssignedProduct.productName
+                : "아무 상품";
+
+            return $"{customerName} 손님 입장 - 목표 상품: {productName}";
         }
 
         private void HandleCustomerExited(CustomerAI customer)
