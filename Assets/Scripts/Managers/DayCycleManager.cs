@@ -1,4 +1,5 @@
 ﻿using MiniMart.Core;
+using MiniMart.Interaction;
 using UnityEngine;
 
 namespace MiniMart.Managers
@@ -47,6 +48,7 @@ namespace MiniMart.Managers
 
             NormalizedTime = 1f;
             IsRunning = false;
+            SettleBottleReturn();
             GameManager.Instance?.EndDay();
             TimeChanged?.Invoke(NormalizedTime);
             DayEnded?.Invoke();
@@ -83,15 +85,25 @@ namespace MiniMart.Managers
                 return;
             }
 
-            NormalizedTime += Time.unscaledDeltaTime / CurrentDayLengthSeconds;
+            NormalizedTime += Time.deltaTime / CurrentDayLengthSeconds;
             NormalizedTime = Mathf.Clamp01(NormalizedTime);
             TimeChanged?.Invoke(NormalizedTime);
 
             if (NormalizedTime >= 1f)
             {
                 IsRunning = false;
+                SettleBottleReturn();
                 GameManager.Instance?.EndDay();
                 DayEnded?.Invoke();
+            }
+        }
+
+        private static void SettleBottleReturn()
+        {
+            TrashCan trashCan = FindFirstObjectByType<TrashCan>();
+            if (trashCan != null)
+            {
+                trashCan.SettleDailyBottleReturn();
             }
         }
     }

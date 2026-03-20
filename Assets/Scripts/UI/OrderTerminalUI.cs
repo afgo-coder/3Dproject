@@ -13,6 +13,7 @@ namespace MiniMart.UI
         [SerializeField] private Text selectedProductText;
         [SerializeField] private Text productCostText;
         [SerializeField] private Text expansionInfoText;
+        [SerializeField] private Text placementInfoText;
 
         private OrderTerminal currentTerminal;
         private int selectedProductIndex;
@@ -136,10 +137,62 @@ namespace MiniMart.UI
             Refresh();
         }
 
+        public void SelectPreviousFurniture()
+        {
+            PlacementManager placementManager = GetPlacementManager();
+            if (placementManager == null)
+            {
+                UIFeedback.ShowStatus("배치 매니저가 연결되지 않았습니다.");
+                return;
+            }
+
+            placementManager.SelectPreviousFurniture();
+            Refresh();
+        }
+
+        public void SelectNextFurniture()
+        {
+            PlacementManager placementManager = GetPlacementManager();
+            if (placementManager == null)
+            {
+                UIFeedback.ShowStatus("배치 매니저가 연결되지 않았습니다.");
+                return;
+            }
+
+            placementManager.SelectNextFurniture();
+            Refresh();
+        }
+
+        public void EnterPlacementMode()
+        {
+            PlacementManager placementManager = GetPlacementManager();
+            if (placementManager == null)
+            {
+                UIFeedback.ShowStatus("배치 매니저가 연결되지 않았습니다.");
+                return;
+            }
+
+            placementManager.EnterPlacementMode();
+            Close();
+        }
+
+        public void ExitPlacementMode()
+        {
+            PlacementManager placementManager = GetPlacementManager();
+            if (placementManager == null)
+            {
+                return;
+            }
+
+            placementManager.ExitPlacementMode();
+            Refresh();
+        }
+
         private void Refresh()
         {
             RefreshProductInfo();
             RefreshExpansionInfo();
+            RefreshPlacementInfo();
         }
 
         private void RefreshProductInfo()
@@ -182,9 +235,34 @@ namespace MiniMart.UI
                 : "모든 확장 완료";
         }
 
+        private void RefreshPlacementInfo()
+        {
+            if (placementInfoText == null)
+            {
+                return;
+            }
+
+            PlacementManager placementManager = GetPlacementManager();
+            if (placementManager == null)
+            {
+                placementInfoText.text = "배치 정보 없음";
+                return;
+            }
+
+            string modeText = placementManager.IsPlacementModeActive ? "활성" : "비활성";
+            placementInfoText.text =
+                $"배치 모드: {modeText}\n" +
+                $"선택 가구: {placementManager.GetSelectedFurnitureName()} ({placementManager.GetSelectedFurnitureCost():N0}원)";
+        }
+
         private ProductData[] GetProducts()
         {
             return currentTerminal != null ? currentTerminal.GetAvailableProducts() : System.Array.Empty<ProductData>();
+        }
+
+        private PlacementManager GetPlacementManager()
+        {
+            return currentTerminal != null ? currentTerminal.GetPlacementManager() : null;
         }
     }
 }

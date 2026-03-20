@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b559c1cb543b484da0726df4807fef6, type: 3}
-  m_Name: Kimbap
+  m_Name: DoriChip
   m_EditorClassIdentifier: Assembly-CSharp::MiniMart.Data.ProductData
-  productId: Kimbap_1
-  productName: Kimbap
-  category: 3
-  salePrice: 1800
-  costPrice: 1300
+  productId: DoriChip_1
+  productName: DoriChip
+  category: 1
+  salePrice: 1500
+  costPrice: 1000
   popularity: 3
   icon: {fileID: 0}
   worldPrefab: {fileID: 0}

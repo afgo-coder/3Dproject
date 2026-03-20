@@ -15,38 +15,52 @@ namespace MiniMart.Managers
         [SerializeField] private CustomerTypeData[] customerTypes;
         [SerializeField] private float baseSpawnInterval = 8f;
         [SerializeField] private int maxCustomers = 5;
+        [SerializeField] private float spawnIntervalReductionPerExpansion = 0.15f;
+        [SerializeField] private int maxSpawnBatchSize = 3;
+        [SerializeField] private TrashCan trashCan;
+        [SerializeField] private ProductData bottleReturnProduct;
+        [SerializeField] private float bottleReturnChance = 0.3f;
 
-        private float _spawnTimer;
-        private int _aliveCustomers;
-        private Shelf[] _shelves;
-        private CheckoutCounter _checkoutCounter;
+        private float spawnTimer;
+        private int aliveCustomers;
+        private CheckoutCounter checkoutCounter;
+        private StoreExpansionManager storeExpansionManager;
 
         private void Awake()
         {
-            _shelves = FindObjectsByType<Shelf>(FindObjectsSortMode.None);
-            _checkoutCounter = FindFirstObjectByType<CheckoutCounter>();
+            checkoutCounter = FindFirstObjectByType<CheckoutCounter>();
+            storeExpansionManager = FindFirstObjectByType<StoreExpansionManager>();
+            if (trashCan == null)
+            {
+                trashCan = FindFirstObjectByType<TrashCan>();
+            }
         }
 
         private void Update()
         {
             DayCycleManager dayCycle = FindFirstObjectByType<DayCycleManager>();
-            if (dayCycle == null || !dayCycle.IsRunning || dayCycle.IsPreparationDay || customerPrefab == null || spawnPoints.Length == 0 || _aliveCustomers >= maxCustomers)
+            if (dayCycle == null || !dayCycle.IsRunning || dayCycle.IsPreparationDay || customerPrefab == null || spawnPoints.Length == 0 || aliveCustomers >= maxCustomers)
             {
                 return;
             }
 
-            _spawnTimer -= Time.deltaTime;
-            if (_spawnTimer > 0f)
+            spawnTimer -= Time.deltaTime;
+            if (spawnTimer > 0f)
             {
                 return;
             }
 
             float multiplier = Mathf.Max(0.25f, dayCycle.SpawnRateMultiplier);
-            _spawnTimer = baseSpawnInterval / multiplier;
-            SpawnCustomer();
+            spawnTimer = GetCurrentSpawnInterval(multiplier);
+
+            int spawnCount = GetSpawnBatchCount();
+            for (int i = 0; i < spawnCount && aliveCustomers < maxCustomers; i++)
+            {
+                SpawnCustomer(i);
+            }
         }
 
-        private void SpawnCustomer()
+        private void SpawnCustomer(int batchIndex)
         {
             Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
             CustomerTypeData type = customerTypes.Length > 0 ? customerTypes[Random.Range(0, customerTypes.Length)] : null;
@@ -56,13 +70,39 @@ namespace MiniMart.Managers
                 return;
             }
 
-            CustomerAI customer = Instantiate(prefabToSpawn, spawnPoint.position, spawnPoint.rotation);
-            customer.Initialize(type, exitPoint, HandleCustomerExited);
+            Vector3 spawnOffset = spawnPoint.right * (batchIndex * 0.6f);
+            CustomerAI customer = Instantiate(prefabToSpawn, spawnPoint.position + spawnOffset, spawnPoint.rotation);
+            customer.Initialize(type, exitPoint, HandleCustomerExited, trashCan, bottleReturnProduct, bottleReturnChance);
 
             Shelf targetShelf = GetShelfForCustomer(type);
-            customer.SetShoppingTargets(targetShelf, _checkoutCounter);
+            customer.SetShoppingTargets(targetShelf, checkoutCounter);
             UIFeedback.ShowStatus(BuildSpawnMessage(type, targetShelf));
-            _aliveCustomers++;
+            aliveCustomers++;
+        }
+
+        private float GetCurrentSpawnInterval(float dayMultiplier)
+        {
+            int effectiveLevel = (storeExpansionManager != null ? storeExpansionManager.CurrentExpansionLevel : 0) + 1;
+            float intervalMultiplier = Mathf.Max(0.45f, 1f - ((effectiveLevel - 1) * spawnIntervalReductionPerExpansion));
+            return (baseSpawnInterval * intervalMultiplier) / dayMultiplier;
+        }
+
+        private int GetSpawnBatchCount()
+        {
+            int effectiveLevel = (storeExpansionManager != null ? storeExpansionManager.CurrentExpansionLevel : 0) + 1;
+            if (effectiveLevel <= 1)
+            {
+                return 1;
+            }
+
+            if (effectiveLevel == 2)
+            {
+                return Random.Range(1, Mathf.Min(2, maxSpawnBatchSize) + 1);
+            }
+
+            int minBatch = Mathf.Min(2, maxSpawnBatchSize);
+            int maxBatch = Mathf.Min(3, maxSpawnBatchSize);
+            return Random.Range(minBatch, maxBatch + 1);
         }
 
         private Shelf GetShelfForCustomer(CustomerTypeData customerType)
@@ -131,14 +171,15 @@ namespace MiniMart.Managers
 
         private Shelf FindShelfByProduct(ProductData product)
         {
-            if (product == null || _shelves == null)
+            Shelf[] shelves = FindObjectsByType<Shelf>(FindObjectsSortMode.None);
+            if (product == null || shelves == null)
             {
                 return null;
             }
 
-            for (int i = 0; i < _shelves.Length; i++)
+            for (int i = 0; i < shelves.Length; i++)
             {
-                Shelf shelf = _shelves[i];
+                Shelf shelf = shelves[i];
                 if (shelf != null && shelf.AssignedProduct == product && shelf.CurrentStock > 0)
                 {
                     return shelf;
@@ -150,22 +191,23 @@ namespace MiniMart.Managers
 
         private Shelf GetRandomAvailableShelf()
         {
-            if (_shelves == null || _shelves.Length == 0)
+            Shelf[] shelves = FindObjectsByType<Shelf>(FindObjectsSortMode.None);
+            if (shelves == null || shelves.Length == 0)
             {
                 return null;
             }
 
-            int startIndex = Random.Range(0, _shelves.Length);
-            for (int i = 0; i < _shelves.Length; i++)
+            int startIndex = Random.Range(0, shelves.Length);
+            for (int i = 0; i < shelves.Length; i++)
             {
-                Shelf shelf = _shelves[(startIndex + i) % _shelves.Length];
+                Shelf shelf = shelves[(startIndex + i) % shelves.Length];
                 if (shelf != null && shelf.CurrentStock > 0)
                 {
                     return shelf;
                 }
             }
 
-            return _shelves[startIndex];
+            return shelves[startIndex];
         }
 
         private string BuildSpawnMessage(CustomerTypeData customerType, Shelf targetShelf)
@@ -182,7 +224,7 @@ namespace MiniMart.Managers
 
         private void HandleCustomerExited(CustomerAI customer)
         {
-            _aliveCustomers = Mathf.Max(0, _aliveCustomers - 1);
+            aliveCustomers = Mathf.Max(0, aliveCustomers - 1);
         }
     }
 }

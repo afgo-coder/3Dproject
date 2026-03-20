@@ -15,14 +15,18 @@ namespace MiniMart.Managers
 
     public class StoreExpansionManager : MonoBehaviour
     {
+        [SerializeField] private int startingExpansionLevel = 0;
         [SerializeField] private StoreExpansionStep[] expansionSteps;
 
         private int _currentExpansionIndex;
 
         public bool HasRemainingExpansion => expansionSteps != null && _currentExpansionIndex < expansionSteps.Length;
+        public int CurrentExpansionLevel => _currentExpansionIndex;
 
         private void Start()
         {
+            _currentExpansionIndex = Mathf.Clamp(startingExpansionLevel, 0, expansionSteps != null ? expansionSteps.Length : 0);
+
             if (expansionSteps == null)
             {
                 return;

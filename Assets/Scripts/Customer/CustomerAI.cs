@@ -17,54 +17,67 @@ namespace MiniMart.Customer
             Browsing,
             GoingToShelf,
             GoingToCheckout,
+            GoingToTrashCan,
             Leaving
         }
 
         [SerializeField] private Shelf targetShelf;
         [SerializeField] private CheckoutCounter checkoutCounter;
 
-        private readonly List<ProductData> _basket = new List<ProductData>();
-        private NavMeshAgent _agent;
-        private Animator _animator;
-        private CustomerTypeData _customerType;
-        private ProductData _targetProduct;
-        private Transform _exitPoint;
-        private Action<CustomerAI> _onExited;
-        private CustomerState _state;
-        private float _browseTimer;
-        private bool _hasQueuedAtCheckout;
+        private readonly List<ProductData> basket = new List<ProductData>();
+        private NavMeshAgent agent;
+        private Animator animator;
+        private CustomerTypeData customerType;
+        private ProductData targetProduct;
+        private Transform exitPoint;
+        private Action<CustomerAI> onExited;
+        private TrashCan trashCan;
+        private ProductData bottleReturnProduct;
+        private float bottleReturnChance;
+        private CustomerState state;
+        private float browseTimer;
+        private bool hasQueuedAtCheckout;
 
         private void Awake()
         {
-            _agent = GetComponent<NavMeshAgent>();
-            _animator = GetComponentInChildren<Animator>();
+            agent = GetComponent<NavMeshAgent>();
+            animator = GetComponentInChildren<Animator>();
         }
 
-        public void Initialize(CustomerTypeData customerType, Transform exitPoint, Action<CustomerAI> onExited)
+        public void Initialize(
+            CustomerTypeData customerTypeData,
+            Transform exitPointTransform,
+            Action<CustomerAI> onExitedCallback,
+            TrashCan assignedTrashCan,
+            ProductData assignedBottleReturnProduct,
+            float assignedBottleReturnChance)
         {
-            _customerType = customerType;
-            _exitPoint = exitPoint;
-            _onExited = onExited;
-            _hasQueuedAtCheckout = false;
+            customerType = customerTypeData;
+            exitPoint = exitPointTransform;
+            onExited = onExitedCallback;
+            trashCan = assignedTrashCan;
+            bottleReturnProduct = assignedBottleReturnProduct;
+            bottleReturnChance = assignedBottleReturnChance;
+            hasQueuedAtCheckout = false;
 
-            if (_customerType != null)
+            if (customerType != null)
             {
-                _agent.speed = _customerType.walkSpeed;
-                _browseTimer = _customerType.browseDuration;
+                agent.speed = customerType.walkSpeed;
+                browseTimer = customerType.browseDuration;
             }
             else
             {
-                _browseTimer = 2f;
+                browseTimer = 2f;
             }
 
-            _state = CustomerState.Browsing;
+            state = CustomerState.Browsing;
         }
 
         private void Update()
         {
             UpdateAnimation();
 
-            switch (_state)
+            switch (state)
             {
                 case CustomerState.Browsing:
                     UpdateBrowsing();
@@ -74,6 +87,9 @@ namespace MiniMart.Customer
                     break;
                 case CustomerState.GoingToCheckout:
                     UpdateGoingToCheckout();
+                    break;
+                case CustomerState.GoingToTrashCan:
+                    UpdateGoingToTrashCan();
                     break;
                 case CustomerState.Leaving:
                     UpdateLeaving();
@@ -85,23 +101,23 @@ namespace MiniMart.Customer
         {
             targetShelf = shelf;
             checkoutCounter = counter;
-            _targetProduct = shelf != null ? shelf.AssignedProduct : null;
+            targetProduct = shelf != null ? shelf.AssignedProduct : null;
         }
 
         public void ReceiveProduct(ProductData product)
         {
             if (product != null)
             {
-                _basket.Add(product);
+                basket.Add(product);
             }
         }
 
         public int GetBasketPrice()
         {
             int total = 0;
-            for (int i = 0; i < _basket.Count; i++)
+            for (int i = 0; i < basket.Count; i++)
             {
-                total += _basket[i].salePrice;
+                total += basket[i].salePrice;
             }
 
             return total;
@@ -109,26 +125,33 @@ namespace MiniMart.Customer
 
         public List<ProductData> GetBasketProducts()
         {
-            return new List<ProductData>(_basket);
+            return new List<ProductData>(basket);
         }
 
         public void CompleteCheckout()
         {
+            if (ShouldVisitTrashCan())
+            {
+                agent.SetDestination(trashCan.GetDropPointPosition());
+                state = CustomerState.GoingToTrashCan;
+                return;
+            }
+
             BeginLeaving();
         }
 
         private void UpdateBrowsing()
         {
-            _browseTimer -= Time.deltaTime;
-            if (_browseTimer > 0f)
+            browseTimer -= Time.deltaTime;
+            if (browseTimer > 0f)
             {
                 return;
             }
 
             if (targetShelf != null)
             {
-                _agent.SetDestination(targetShelf.transform.position);
-                _state = CustomerState.GoingToShelf;
+                agent.SetDestination(targetShelf.transform.position);
+                state = CustomerState.GoingToShelf;
                 return;
             }
 
@@ -137,7 +160,7 @@ namespace MiniMart.Customer
 
         private void UpdateGoingToShelf()
         {
-            if (_agent.pathPending || _agent.remainingDistance > 1.25f)
+            if (agent.pathPending || agent.remainingDistance > 1.25f)
             {
                 return;
             }
@@ -149,8 +172,8 @@ namespace MiniMart.Customer
 
             if (checkoutCounter != null)
             {
-                _agent.SetDestination(checkoutCounter.GetCustomerStandPosition());
-                _state = CustomerState.GoingToCheckout;
+                agent.SetDestination(checkoutCounter.GetCustomerStandPosition());
+                state = CustomerState.GoingToCheckout;
             }
             else
             {
@@ -160,51 +183,80 @@ namespace MiniMart.Customer
 
         private void UpdateGoingToCheckout()
         {
-            if (_agent.pathPending || _agent.remainingDistance > 0.25f)
+            if (agent.pathPending || agent.remainingDistance > 0.25f)
             {
                 return;
             }
 
-            if (!_hasQueuedAtCheckout && checkoutCounter != null && checkoutCounter.IsCustomerAtCounter(this))
+            if (!hasQueuedAtCheckout && checkoutCounter != null && checkoutCounter.IsCustomerAtCounter(this))
             {
                 checkoutCounter.NotifyCustomerArrived(this);
-                _hasQueuedAtCheckout = true;
+                hasQueuedAtCheckout = true;
             }
+        }
+
+        private void UpdateGoingToTrashCan()
+        {
+            if (agent.pathPending || agent.remainingDistance > 0.6f)
+            {
+                return;
+            }
+
+            trashCan?.AddBottleFromCustomer();
+            BeginLeaving();
         }
 
         private void UpdateLeaving()
         {
-            if (_agent.pathPending || _agent.remainingDistance > 1.25f)
+            if (agent.pathPending || agent.remainingDistance > 1.25f)
             {
                 return;
             }
 
-            _onExited?.Invoke(this);
+            onExited?.Invoke(this);
             Destroy(gameObject);
         }
 
         private void BeginLeaving()
         {
-            if (_exitPoint != null)
+            if (exitPoint != null)
             {
-                _agent.SetDestination(_exitPoint.position);
+                agent.SetDestination(exitPoint.position);
             }
 
-            _state = CustomerState.Leaving;
+            state = CustomerState.Leaving;
         }
 
         private void UpdateAnimation()
         {
-            if (_animator == null)
+            if (animator == null)
             {
                 return;
             }
 
-            float speed = _agent.velocity.magnitude;
-            _animator.SetFloat(SpeedParameter, speed);
+            float speed = agent.velocity.magnitude;
+            animator.SetFloat(SpeedParameter, speed);
         }
 
-        public CustomerTypeData CustomerType => _customerType;
-        public ProductData TargetProduct => _targetProduct;
+        public CustomerTypeData CustomerType => customerType;
+        public ProductData TargetProduct => targetProduct;
+
+        private bool ShouldVisitTrashCan()
+        {
+            if (trashCan == null || bottleReturnProduct == null || basket.Count == 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < basket.Count; i++)
+            {
+                if (basket[i] == bottleReturnProduct)
+                {
+                    return UnityEngine.Random.value <= bottleReturnChance;
+                }
+            }
+
+            return false;
+        }
     }
 }

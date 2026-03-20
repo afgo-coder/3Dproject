@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using MiniMart.Data;
 using UnityEngine;
@@ -11,12 +11,15 @@ namespace MiniMart.Managers
 
         [SerializeField] private int startingMoney = 30000;
 
-        private readonly Dictionary<ProductData, int> _dailyUnitsSold = new Dictionary<ProductData, int>();
+        private readonly Dictionary<ProductData, int> dailyUnitsSold = new Dictionary<ProductData, int>();
+        private bool dailyBottleSettlementApplied;
 
         public int CurrentMoney { get; private set; }
         public int DailySales { get; private set; }
         public int DailyCosts { get; private set; }
-        public int DailyProfit => DailySales - DailyCosts;
+        public int DailyBottleCount { get; private set; }
+        public int DailyBottleReturnIncome { get; private set; }
+        public int DailyProfit => DailySales + DailyBottleReturnIncome - DailyCosts;
 
         public event Action<int> MoneyChanged;
         public event Action DailySummaryChanged;
@@ -67,13 +70,13 @@ namespace MiniMart.Managers
                 return;
             }
 
-            if (_dailyUnitsSold.ContainsKey(product))
+            if (dailyUnitsSold.ContainsKey(product))
             {
-                _dailyUnitsSold[product] += amount;
+                dailyUnitsSold[product] += amount;
             }
             else
             {
-                _dailyUnitsSold.Add(product, amount);
+                dailyUnitsSold.Add(product, amount);
             }
 
             DailySummaryChanged?.Invoke();
@@ -83,7 +86,25 @@ namespace MiniMart.Managers
         {
             DailySales = 0;
             DailyCosts = 0;
-            _dailyUnitsSold.Clear();
+            DailyBottleCount = 0;
+            DailyBottleReturnIncome = 0;
+            dailyBottleSettlementApplied = false;
+            dailyUnitsSold.Clear();
+            DailySummaryChanged?.Invoke();
+        }
+
+        public void ApplyBottleReturnSettlement(int bottleCount, int bottleValue)
+        {
+            if (dailyBottleSettlementApplied)
+            {
+                return;
+            }
+
+            DailyBottleCount = Mathf.Max(0, bottleCount);
+            DailyBottleReturnIncome = DailyBottleCount * Mathf.Max(0, bottleValue);
+            CurrentMoney += DailyBottleReturnIncome;
+            dailyBottleSettlementApplied = true;
+            MoneyChanged?.Invoke(CurrentMoney);
             DailySummaryChanged?.Invoke();
         }
 
@@ -92,7 +113,7 @@ namespace MiniMart.Managers
             soldCount = 0;
             ProductData bestProduct = null;
 
-            foreach (KeyValuePair<ProductData, int> entry in _dailyUnitsSold)
+            foreach (KeyValuePair<ProductData, int> entry in dailyUnitsSold)
             {
                 if (entry.Value > soldCount)
                 {

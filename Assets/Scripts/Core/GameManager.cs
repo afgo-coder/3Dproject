@@ -53,6 +53,7 @@ namespace MiniMart.Core
         public void SetModalOpen(bool isOpen)
         {
             IsModalOpen = isOpen;
+            Time.timeScale = IsDayRunning && !IsModalOpen ? 1f : 0f;
             ApplyCursorState(IsDayRunning, IsModalOpen);
             ModalStateChanged?.Invoke(IsModalOpen);
         }

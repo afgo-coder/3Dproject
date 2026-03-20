@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b559c1cb543b484da0726df4807fef6, type: 3}
-  m_Name: Water
+  m_Name: CupNoodle
   m_EditorClassIdentifier: Assembly-CSharp::MiniMart.Data.ProductData
-  productId: water_01
-  productName: Water
-  category: 0
-  salePrice: 1000
-  costPrice: 600
+  productId: CupNoodle_1
+  productName: CupNoodle
+  category: 2
+  salePrice: 1500
+  costPrice: 900
   popularity: 3
   icon: {fileID: 0}
   worldPrefab: {fileID: 0}
-  maxShelfCapacity: 10
+  maxShelfCapacity: 8

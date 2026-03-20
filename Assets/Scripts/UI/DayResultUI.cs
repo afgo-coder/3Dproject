@@ -75,10 +75,10 @@ namespace MiniMart.UI
                 $"{dayLine}" +
                 $"오늘 매출: {EconomyManager.Instance.DailySales:N0}원\n" +
                 $"오늘 비용: {EconomyManager.Instance.DailyCosts:N0}원\n" +
+                $"공병 회수: {EconomyManager.Instance.DailyBottleCount}개 (+{EconomyManager.Instance.DailyBottleReturnIncome:N0}원)\n" +
                 $"오늘 순이익: {EconomyManager.Instance.DailyProfit:N0}원\n" +
                 $"{bestProductLine}\n" +
                 $"현재 보유 금액: {EconomyManager.Instance.CurrentMoney:N0}원";
         }
     }
 }
-

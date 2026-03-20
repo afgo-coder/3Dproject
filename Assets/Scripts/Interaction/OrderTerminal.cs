@@ -11,6 +11,7 @@ namespace MiniMart.Interaction
         [SerializeField] private int orderAmount = 5;
         [SerializeField] private OrderTerminalUI terminalUI;
         [SerializeField] private StoreExpansionManager expansionManager;
+        [SerializeField] private PlacementManager placementManager;
 
         public override string GetInteractionPrompt()
         {
@@ -41,6 +42,11 @@ namespace MiniMart.Interaction
         public StoreExpansionManager GetExpansionManager()
         {
             return expansionManager;
+        }
+
+        public PlacementManager GetPlacementManager()
+        {
+            return placementManager;
         }
     }
 }
