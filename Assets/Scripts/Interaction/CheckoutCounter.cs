@@ -2,6 +2,7 @@
 using MiniMart.Customer;
 using MiniMart.Data;
 using MiniMart.Managers;
+using MiniMart.Tutorial;
 using MiniMart.UI;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ namespace MiniMart.Interaction
 
         private readonly Queue<CustomerAI> _waitingCustomers = new Queue<CustomerAI>();
         private readonly HashSet<CustomerAI> _readyCustomers = new HashSet<CustomerAI>();
+        public bool HasWaitingCustomers => _waitingCustomers.Count > 0;
 
         public override string GetInteractionPrompt()
         {
@@ -24,29 +26,7 @@ namespace MiniMart.Interaction
 
         public override void Interact(GameObject interactor)
         {
-            RemoveInvalidCustomers();
-            if (_waitingCustomers.Count == 0)
-            {
-                UIFeedback.ShowStatus("계산대 앞에 도착한 손님이 없습니다.");
-                return;
-            }
-
-            CustomerAI customer = _waitingCustomers.Dequeue();
-            _readyCustomers.Remove(customer);
-            int totalPrice = customer.GetBasketPrice();
-            List<ProductData> soldProducts = customer.GetBasketProducts();
-
-            EconomyManager.Instance?.AddSale(totalPrice);
-            if (EconomyManager.Instance != null)
-            {
-                for (int i = 0; i < soldProducts.Count; i++)
-                {
-                    EconomyManager.Instance.RecordProductSale(soldProducts[i]);
-                }
-            }
-
-            customer.CompleteCheckout();
-            UIFeedback.ShowStatus($"결제가 완료되었습니다. +{totalPrice:N0}원");
+            TryProcessNextCustomer(true);
         }
 
         public void NotifyCustomerArrived(CustomerAI customer)
@@ -90,6 +70,48 @@ namespace MiniMart.Interaction
             {
                 _waitingCustomers.Dequeue();
             }
+        }
+
+        public bool TryProcessNextCustomer(bool showFeedback)
+        {
+            RemoveInvalidCustomers();
+            if (_waitingCustomers.Count == 0)
+            {
+                if (showFeedback)
+                {
+                    UIFeedback.ShowStatus("계산대 앞에 도착한 손님이 없습니다.");
+                }
+
+                return false;
+            }
+
+            CustomerAI customer = _waitingCustomers.Dequeue();
+            _readyCustomers.Remove(customer);
+            int totalPrice = customer.GetBasketPrice();
+            List<ProductData> soldProducts = customer.GetBasketProducts();
+
+            EconomyManager.Instance?.AddSale(totalPrice);
+            if (EconomyManager.Instance != null)
+            {
+                for (int i = 0; i < soldProducts.Count; i++)
+                {
+                    EconomyManager.Instance.RecordProductSale(soldProducts[i]);
+                }
+
+                EconomyManager.Instance.RecordCustomerServed();
+            }
+
+            customer.CompleteCheckout();
+            TutorialManager.Instance?.NotifyCheckoutCompleted();
+            AudioManager.Instance?.PlayCheckout();
+
+            if (showFeedback)
+            {
+                UIFeedback.ShowStatus($"결제가 완료되었습니다. +{totalPrice:N0}원");
+            }
+
+            SaveManager.Instance?.SaveGame();
+            return true;
         }
     }
 }

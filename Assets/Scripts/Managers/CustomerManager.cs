@@ -1,7 +1,8 @@
-﻿using MiniMart.Core;
+using MiniMart.Core;
 using MiniMart.Customer;
 using MiniMart.Data;
 using MiniMart.Interaction;
+using MiniMart.Tutorial;
 using MiniMart.UI;
 using UnityEngine;
 
@@ -25,6 +26,12 @@ namespace MiniMart.Managers
         private int aliveCustomers;
         private CheckoutCounter checkoutCounter;
         private StoreExpansionManager storeExpansionManager;
+        private bool isClosingTime;
+
+        public event System.Action AllCustomersExitedAfterClosing;
+
+        public int ActiveCustomerCount => aliveCustomers;
+        public bool IsClosingTime => isClosingTime;
 
         private void Awake()
         {
@@ -39,7 +46,29 @@ namespace MiniMart.Managers
         private void Update()
         {
             DayCycleManager dayCycle = FindFirstObjectByType<DayCycleManager>();
-            if (dayCycle == null || !dayCycle.IsRunning || dayCycle.IsPreparationDay || customerPrefab == null || spawnPoints.Length == 0 || aliveCustomers >= maxCustomers)
+            if (dayCycle == null || customerPrefab == null || spawnPoints.Length == 0)
+            {
+                return;
+            }
+
+            if (dayCycle.IsRunning && !dayCycle.IsClosingTime)
+            {
+                isClosingTime = false;
+            }
+
+            if (!dayCycle.IsRunning || isClosingTime || aliveCustomers >= maxCustomers)
+            {
+                return;
+            }
+
+            if (ShouldSpawnTutorialCheckoutCustomer(dayCycle))
+            {
+                SpawnCustomer(0);
+                spawnTimer = Mathf.Max(2f, baseSpawnInterval);
+                return;
+            }
+
+            if (dayCycle.IsPreparationDay)
             {
                 return;
             }
@@ -82,20 +111,24 @@ namespace MiniMart.Managers
 
         private float GetCurrentSpawnInterval(float dayMultiplier)
         {
+            int currentDay = GameManager.Instance != null ? Mathf.Max(1, GameManager.Instance.CurrentDay) : 1;
             int effectiveLevel = (storeExpansionManager != null ? storeExpansionManager.CurrentExpansionLevel : 0) + 1;
-            float intervalMultiplier = Mathf.Max(0.45f, 1f - ((effectiveLevel - 1) * spawnIntervalReductionPerExpansion));
-            return (baseSpawnInterval * intervalMultiplier) / dayMultiplier;
+            float dayBaseInterval = GetBaseSpawnIntervalForDay(currentDay);
+            float intervalMultiplier = Mathf.Max(0.55f, 1f - ((effectiveLevel - 1) * spawnIntervalReductionPerExpansion));
+            return (dayBaseInterval * intervalMultiplier * GetTimeSegmentSpawnMultiplier()) / dayMultiplier;
         }
 
         private int GetSpawnBatchCount()
         {
+            int currentDay = GameManager.Instance != null ? Mathf.Max(1, GameManager.Instance.CurrentDay) : 1;
             int effectiveLevel = (storeExpansionManager != null ? storeExpansionManager.CurrentExpansionLevel : 0) + 1;
-            if (effectiveLevel <= 1)
+            int pressureLevel = effectiveLevel + GetAdditionalBatchPressure(currentDay);
+            if (pressureLevel <= 1)
             {
                 return 1;
             }
 
-            if (effectiveLevel == 2)
+            if (pressureLevel == 2)
             {
                 return Random.Range(1, Mathf.Min(2, maxSpawnBatchSize) + 1);
             }
@@ -103,6 +136,41 @@ namespace MiniMart.Managers
             int minBatch = Mathf.Min(2, maxSpawnBatchSize);
             int maxBatch = Mathf.Min(3, maxSpawnBatchSize);
             return Random.Range(minBatch, maxBatch + 1);
+        }
+
+        private float GetBaseSpawnIntervalForDay(int day)
+        {
+            if (day <= 5)
+            {
+                return 8.5f;
+            }
+
+            if (day <= 13)
+            {
+                return 7f;
+            }
+
+            if (day <= 20)
+            {
+                return 5.9f;
+            }
+
+            return 5.1f;
+        }
+
+        private static int GetAdditionalBatchPressure(int day)
+        {
+            if (day <= 5)
+            {
+                return 0;
+            }
+
+            if (day <= 13)
+            {
+                return 1;
+            }
+
+            return 2;
         }
 
         private Shelf GetShelfForCustomer(CustomerTypeData customerType)
@@ -177,16 +245,23 @@ namespace MiniMart.Managers
                 return null;
             }
 
+            Shelf bestShelf = null;
+            float bestScore = float.MinValue;
             for (int i = 0; i < shelves.Length; i++)
             {
                 Shelf shelf = shelves[i];
                 if (shelf != null && shelf.AssignedProduct == product && shelf.CurrentStock > 0)
                 {
-                    return shelf;
+                    float score = GetShelfDemandScore(shelf);
+                    if (score > bestScore)
+                    {
+                        bestScore = score;
+                        bestShelf = shelf;
+                    }
                 }
             }
 
-            return null;
+            return bestShelf;
         }
 
         private Shelf GetRandomAvailableShelf()
@@ -197,17 +272,58 @@ namespace MiniMart.Managers
                 return null;
             }
 
-            int startIndex = Random.Range(0, shelves.Length);
+            Shelf bestShelf = null;
+            float bestScore = float.MinValue;
             for (int i = 0; i < shelves.Length; i++)
             {
-                Shelf shelf = shelves[(startIndex + i) % shelves.Length];
+                Shelf shelf = shelves[i];
                 if (shelf != null && shelf.CurrentStock > 0)
                 {
-                    return shelf;
+                    float score = GetShelfDemandScore(shelf);
+                    if (score > bestScore)
+                    {
+                        bestScore = score;
+                        bestShelf = shelf;
+                    }
                 }
             }
 
-            return shelves[startIndex];
+            return bestShelf != null ? bestShelf : shelves[Random.Range(0, shelves.Length)];
+        }
+
+        private float GetShelfDemandScore(Shelf shelf)
+        {
+            if (shelf == null || shelf.AssignedProduct == null)
+            {
+                return 0f;
+            }
+
+            float demandMultiplier = StoreProgressionManager.Instance != null
+                ? StoreProgressionManager.Instance.GetDemandMultiplier(shelf.AssignedProduct)
+                : 1f;
+            return demandMultiplier + Random.Range(0f, 0.15f);
+        }
+
+        private float GetTimeSegmentSpawnMultiplier()
+        {
+            if (StoreProgressionManager.Instance == null)
+            {
+                return 1f;
+            }
+
+            switch (StoreProgressionManager.Instance.GetCurrentTimeSegment())
+            {
+                case StoreTimeSegment.Morning:
+                    return 1.1f;
+                case StoreTimeSegment.Lunch:
+                    return 0.82f;
+                case StoreTimeSegment.Evening:
+                    return 0.92f;
+                case StoreTimeSegment.Night:
+                    return 1.12f;
+                default:
+                    return 1f;
+            }
         }
 
         private string BuildSpawnMessage(CustomerTypeData customerType, Shelf targetShelf)
@@ -225,6 +341,40 @@ namespace MiniMart.Managers
         private void HandleCustomerExited(CustomerAI customer)
         {
             aliveCustomers = Mathf.Max(0, aliveCustomers - 1);
+
+            if (isClosingTime && aliveCustomers == 0)
+            {
+                AllCustomersExitedAfterClosing?.Invoke();
+            }
+        }
+
+        private bool ShouldSpawnTutorialCheckoutCustomer(DayCycleManager dayCycle)
+        {
+            if (dayCycle == null || !dayCycle.IsPreparationDay || aliveCustomers > 0 || isClosingTime)
+            {
+                return false;
+            }
+
+            TutorialManager tutorialManager = TutorialManager.Instance;
+            if (tutorialManager == null)
+            {
+                return false;
+            }
+
+            return tutorialManager.HasOpenedOrderTerminal &&
+                   tutorialManager.HasPlacedOrder &&
+                   tutorialManager.HasStockedShelf &&
+                   !tutorialManager.HasCompletedCheckout;
+        }
+
+        public void BeginClosingTime()
+        {
+            isClosingTime = true;
+
+            if (aliveCustomers == 0)
+            {
+                AllCustomersExitedAfterClosing?.Invoke();
+            }
         }
     }
 }

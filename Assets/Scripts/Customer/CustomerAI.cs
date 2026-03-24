@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using MiniMart.Data;
 using MiniMart.Interaction;
+using MiniMart.Managers;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -117,7 +118,10 @@ namespace MiniMart.Customer
             int total = 0;
             for (int i = 0; i < basket.Count; i++)
             {
-                total += basket[i].salePrice;
+                ProductData product = basket[i];
+                total += StoreProgressionManager.Instance != null
+                    ? StoreProgressionManager.Instance.GetSalePrice(product)
+                    : product.salePrice;
             }
 
             return total;

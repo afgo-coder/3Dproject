@@ -19,6 +19,8 @@ namespace MiniMart.Interaction
 
         public bool HasPlacedFurniture => placedObject != null;
         public string CurrentFurnitureName => placedFurnitureData != null ? placedFurnitureData.displayName : "설치된 가구";
+        public PlaceableFurnitureData PlacedFurnitureData => placedFurnitureData;
+        public Shelf PlacedShelf => placedObject != null ? placedObject.GetComponent<Shelf>() : null;
 
         private void Awake()
         {
@@ -62,6 +64,12 @@ namespace MiniMart.Interaction
                 return $"[E] {CurrentFurnitureName} 철거";
             }
 
+            string failureReason = placementManager.GetPlacementFailureReason(this);
+            if (!string.IsNullOrWhiteSpace(failureReason))
+            {
+                return $"[E] 설치 불가 ({failureReason})";
+            }
+
             return $"[E] {placementManager.GetSelectedFurnitureName()} 설치 ({placementManager.GetSelectedFurnitureCost():N0}원)";
         }
 
@@ -83,6 +91,13 @@ namespace MiniMart.Interaction
             if (HasPlacedFurniture)
             {
                 placementManager.TryRemoveFromSlot(this);
+                return;
+            }
+
+            string failureReason = placementManager.GetPlacementFailureReason(this);
+            if (!string.IsNullOrWhiteSpace(failureReason))
+            {
+                UIFeedback.ShowStatus($"설치 불가: {failureReason}");
                 return;
             }
 

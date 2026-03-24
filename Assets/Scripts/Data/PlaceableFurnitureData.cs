@@ -14,6 +14,11 @@ namespace MiniMart.Data
         public float localYOffset = -0.5f;
         public Vector3 localEulerOffset;
 
+        public string GetFurnitureId()
+        {
+            return string.IsNullOrWhiteSpace(furnitureId) ? name : furnitureId;
+        }
+
         public Shelf GetShelfPrefab()
         {
             return prefab != null ? prefab.GetComponent<Shelf>() : null;

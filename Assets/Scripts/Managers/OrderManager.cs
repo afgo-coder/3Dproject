@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MiniMart.Data;
 using MiniMart.Interaction;
+using MiniMart.Tutorial;
 using MiniMart.UI;
 using UnityEngine;
 
@@ -48,12 +49,16 @@ namespace MiniMart.Managers
                 {
                     StorageBox box = Instantiate(storageBoxPrefab, spawnPosition, storageSpawnPoint.rotation);
                     box.Initialize(product, amount);
+                    AudioManager.Instance?.PlayOrderPlaced();
                 }
                 else
                 {
                     UIFeedback.ShowStatus("창고가 가득 차서 새 발주 박스를 놓을 자리가 없습니다.");
                 }
             }
+
+            TutorialManager.Instance?.NotifyOrderPlaced();
+            SaveManager.Instance?.SaveGame();
 
             return true;
         }
@@ -84,6 +89,45 @@ namespace MiniMart.Managers
 
             _storageInventory[product] = current - amount;
             return true;
+        }
+
+        public Dictionary<ProductData, int> GetStorageSnapshot()
+        {
+            return new Dictionary<ProductData, int>(_storageInventory);
+        }
+
+        public void ClearStorageForRestore()
+        {
+            _storageInventory.Clear();
+
+            StorageBox[] boxes = FindObjectsByType<StorageBox>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < boxes.Length; i++)
+            {
+                if (boxes[i] == null)
+                {
+                    continue;
+                }
+
+                if (Application.isPlaying)
+                {
+                    Destroy(boxes[i].gameObject);
+                }
+                else
+                {
+                    DestroyImmediate(boxes[i].gameObject);
+                }
+            }
+        }
+
+        public void RestoreStorageEntry(ProductData product, int amount)
+        {
+            if (product == null || amount <= 0)
+            {
+                return;
+            }
+
+            AddStorageStock(product, amount);
+            TrySpawnStorageBox(product, amount);
         }
 
         private bool TryFindSpawnPosition(out Vector3 spawnPosition)
@@ -132,6 +176,22 @@ namespace MiniMart.Managers
                 QueryTriggerInteraction.Ignore);
 
             return hits.Length == 0;
+        }
+
+        private void TrySpawnStorageBox(ProductData product, int amount)
+        {
+            if (storageBoxPrefab == null || storageSpawnPoint == null)
+            {
+                return;
+            }
+
+            if (!TryFindSpawnPosition(out Vector3 spawnPosition))
+            {
+                return;
+            }
+
+            StorageBox box = Instantiate(storageBoxPrefab, spawnPosition, storageSpawnPoint.rotation);
+            box.Initialize(product, amount);
         }
 
         private void OnDrawGizmosSelected()

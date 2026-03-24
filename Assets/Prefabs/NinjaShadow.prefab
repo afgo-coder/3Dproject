@@ -1,0 +1,111 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &8984464419352922833
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -2.19
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 2.40242
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      propertyPath: m_Name
+      value: NinjaShadow
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 434c71e39fb385542a5b47fc227bb093, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5524732317175043882}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 603032634591055532}
+  m_SourcePrefab: {fileID: 100100000, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+--- !u!1 &8101504143315171200 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: a18e805db89ff9847985ada1866b3634, type: 3}
+  m_PrefabInstance: {fileID: 8984464419352922833}
+  m_PrefabAsset: {fileID: 0}
+--- !u!195 &5524732317175043882
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8101504143315171200}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 2
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
+--- !u!114 &603032634591055532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8101504143315171200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5eff4e52926f9f1498c3f81b2e89e06b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MiniMart.Workers.ShadowWorkerAI
+  stockerRefreshInterval: 1.5
+  cashierProcessInterval: 1
+  shelfReachDistance: 1.15

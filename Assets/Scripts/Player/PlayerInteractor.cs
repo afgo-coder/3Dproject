@@ -58,6 +58,11 @@ namespace MiniMart.Player
             return true;
         }
 
+        public void RestoreHeldProduct(ProductData product)
+        {
+            HeldProduct = product;
+        }
+
         private void UpdateFocus()
         {
             if (playerCamera == null)

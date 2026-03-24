@@ -101,6 +101,42 @@ namespace MiniMart.Managers
             return data != null ? data.buildCost : 0;
         }
 
+        public string GetPlacementFailureReason(BuildSlot slot)
+        {
+            if (slot == null)
+            {
+                return "슬롯 정보가 없습니다.";
+            }
+
+            if (!IsPlacementModeActive)
+            {
+                return "배치 모드가 비활성 상태입니다.";
+            }
+
+            if (slot.HasPlacedFurniture)
+            {
+                return "이미 가구가 설치된 슬롯입니다.";
+            }
+
+            PlaceableFurnitureData selectedFurniture = GetSelectedFurniture();
+            if (selectedFurniture == null || selectedFurniture.prefab == null)
+            {
+                return "설치할 가구가 선택되지 않았습니다.";
+            }
+
+            if (EconomyManager.Instance == null)
+            {
+                return "경제 매니저를 찾지 못했습니다.";
+            }
+
+            if (EconomyManager.Instance.CurrentMoney < selectedFurniture.buildCost)
+            {
+                return $"{selectedFurniture.buildCost:N0}원이 필요합니다.";
+            }
+
+            return string.Empty;
+        }
+
         public PlaceableFurnitureData GetSelectedFurniture()
         {
             if (availableFurniture == null || availableFurniture.Length == 0)
@@ -112,6 +148,30 @@ namespace MiniMart.Managers
             return availableFurniture[selectedFurnitureIndex];
         }
 
+        public PlaceableFurnitureData FindFurnitureById(string furnitureId)
+        {
+            if (availableFurniture == null || string.IsNullOrWhiteSpace(furnitureId))
+            {
+                return null;
+            }
+
+            for (int i = 0; i < availableFurniture.Length; i++)
+            {
+                PlaceableFurnitureData furniture = availableFurniture[i];
+                if (furniture == null)
+                {
+                    continue;
+                }
+
+                if (furniture.GetFurnitureId() == furnitureId || furniture.name == furnitureId)
+                {
+                    return furniture;
+                }
+            }
+
+            return null;
+        }
+
         public bool TryPlaceAtSlot(BuildSlot slot)
         {
             if (!IsPlacementModeActive || slot == null)
@@ -119,28 +179,21 @@ namespace MiniMart.Managers
                 return false;
             }
 
-            if (slot.HasPlacedFurniture)
+            string failureReason = GetPlacementFailureReason(slot);
+            if (!string.IsNullOrWhiteSpace(failureReason))
             {
-                UIFeedback.ShowStatus("이미 가구가 설치된 슬롯입니다.");
+                UIFeedback.ShowStatus($"설치 불가: {failureReason}");
                 return false;
             }
 
             PlaceableFurnitureData selectedFurniture = GetSelectedFurniture();
-            if (selectedFurniture == null || selectedFurniture.prefab == null)
-            {
-                UIFeedback.ShowStatus("설치할 가구 프리팹이 없습니다.");
-                return false;
-            }
-
-            if (EconomyManager.Instance == null || !EconomyManager.Instance.TrySpend(selectedFurniture.buildCost))
-            {
-                UIFeedback.ShowStatus($"설치 실패: {selectedFurniture.buildCost:N0}원이 필요합니다.");
-                return false;
-            }
+            EconomyManager.Instance.TrySpend(selectedFurniture.buildCost);
 
             slot.PlaceFurniture(selectedFurniture);
             RefreshBuildSlots();
+            AudioManager.Instance?.PlayFurniturePlaced();
             UIFeedback.ShowStatus($"{selectedFurniture.displayName} 설치 완료");
+            SaveManager.Instance?.SaveGame();
             ExitPlacementMode();
             return true;
         }
@@ -156,6 +209,7 @@ namespace MiniMart.Managers
             slot.RemoveFurniture();
             RefreshBuildSlots();
             UIFeedback.ShowStatus($"{furnitureName} 철거 완료");
+            SaveManager.Instance?.SaveGame();
             return true;
         }
 

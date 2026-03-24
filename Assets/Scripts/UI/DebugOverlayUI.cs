@@ -1,3 +1,5 @@
+using MiniMart.Core;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -5,27 +7,40 @@ namespace MiniMart.UI
 {
     public class DebugOverlayUI : MonoBehaviour
     {
-        [SerializeField] private Text interactionPromptText;
-        [SerializeField] private Text statusText;
+        [SerializeField] private TMP_Text interactionPromptText;
+        [SerializeField] private TMP_Text statusText;
+        [SerializeField] private Text legacyInteractionPromptText;
+        [SerializeField] private Text legacyStatusText;
         [SerializeField] private float statusDuration = 2.5f;
 
-        private float _statusTimer;
+        private float statusTimer;
 
         private void Awake()
         {
+            TryFindReferences();
             SetInteractionPrompt(string.Empty);
             ClearStatus();
         }
 
         private void Update()
         {
-            if (_statusTimer <= 0f)
+            if ((interactionPromptText == null && legacyInteractionPromptText == null) ||
+                (statusText == null && legacyStatusText == null))
+            {
+                TryFindReferences();
+            }
+
+            bool isModalOpen = GameManager.Instance != null && GameManager.Instance.IsModalOpen;
+            SetInteractionVisible(!isModalOpen && !string.IsNullOrWhiteSpace(GetCurrentInteractionText()));
+            SetStatusVisible(!isModalOpen && !string.IsNullOrWhiteSpace(GetCurrentStatusText()));
+
+            if (statusTimer <= 0f)
             {
                 return;
             }
 
-            _statusTimer -= Time.unscaledDeltaTime;
-            if (_statusTimer <= 0f)
+            statusTimer -= Time.unscaledDeltaTime;
+            if (statusTimer <= 0f)
             {
                 ClearStatus();
             }
@@ -33,38 +48,67 @@ namespace MiniMart.UI
 
         public void SetInteractionPrompt(string message)
         {
-            if (interactionPromptText == null)
-            {
-                return;
-            }
-
-            interactionPromptText.text = message;
-            interactionPromptText.enabled = !string.IsNullOrWhiteSpace(message);
+            SetInteractionContent(message);
+            SetInteractionVisible(
+                !string.IsNullOrWhiteSpace(message) &&
+                (GameManager.Instance == null || !GameManager.Instance.IsModalOpen));
         }
 
         public void ShowStatus(string message)
         {
             Debug.Log(message);
+            SetStatusContent(message);
+            SetStatusVisible(
+                !string.IsNullOrWhiteSpace(message) &&
+                (GameManager.Instance == null || !GameManager.Instance.IsModalOpen));
+            statusTimer = statusDuration;
+        }
 
-            if (statusText == null)
+        private void TryFindReferences()
+        {
+            if ((interactionPromptText == null && legacyInteractionPromptText == null) ||
+                (statusText == null && legacyStatusText == null))
             {
-                return;
+                UiTextUtility.TryAssignFromCanvasChild("InteractionPromptText", ref interactionPromptText, ref legacyInteractionPromptText);
+                UiTextUtility.TryAssignFromCanvasChild("StatusText", ref statusText, ref legacyStatusText);
             }
-
-            statusText.text = message;
-            statusText.enabled = !string.IsNullOrWhiteSpace(message);
-            _statusTimer = statusDuration;
         }
 
         private void ClearStatus()
         {
-            if (statusText == null)
-            {
-                return;
-            }
+            SetStatusContent(string.Empty);
+            SetStatusVisible(false);
+        }
 
-            statusText.text = string.Empty;
-            statusText.enabled = false;
+        private void SetInteractionContent(string content)
+        {
+            UiTextUtility.TryAssignFromComponent(this, ref interactionPromptText, ref legacyInteractionPromptText);
+            UiTextUtility.SetText(interactionPromptText, legacyInteractionPromptText, content);
+        }
+
+        private void SetStatusContent(string content)
+        {
+            UiTextUtility.SetText(statusText, legacyStatusText, content);
+        }
+
+        private string GetCurrentInteractionText()
+        {
+            return UiTextUtility.GetText(interactionPromptText, legacyInteractionPromptText);
+        }
+
+        private string GetCurrentStatusText()
+        {
+            return UiTextUtility.GetText(statusText, legacyStatusText);
+        }
+
+        private void SetInteractionVisible(bool visible)
+        {
+            UiTextUtility.SetVisible(interactionPromptText, legacyInteractionPromptText, visible);
+        }
+
+        private void SetStatusVisible(bool visible)
+        {
+            UiTextUtility.SetVisible(statusText, legacyStatusText, visible);
         }
     }
 }

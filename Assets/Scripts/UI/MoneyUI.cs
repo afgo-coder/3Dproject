@@ -1,4 +1,5 @@
-﻿using MiniMart.Managers;
+using MiniMart.Managers;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,24 +7,37 @@ namespace MiniMart.UI
 {
     public class MoneyUI : MonoBehaviour
     {
-        [SerializeField] private Text moneyText;
+        [SerializeField] private TMP_Text moneyText;
+        [SerializeField] private Text legacyMoneyText;
         [SerializeField] private string prefix = "보유 금액";
 
-        private bool _isSubscribed;
+        private bool isSubscribed;
+
+        private void Awake()
+        {
+            TryFindReferences();
+        }
 
         private void OnEnable()
         {
+            TryFindReferences();
             TryBind();
         }
 
         private void Start()
         {
+            TryFindReferences();
             TryBind();
         }
 
         private void Update()
         {
-            if (!_isSubscribed)
+            if (moneyText == null && legacyMoneyText == null)
+            {
+                TryFindReferences();
+            }
+
+            if (!isSubscribed)
             {
                 TryBind();
             }
@@ -31,33 +45,35 @@ namespace MiniMart.UI
 
         private void OnDisable()
         {
-            if (_isSubscribed && EconomyManager.Instance != null)
+            if (isSubscribed && EconomyManager.Instance != null)
             {
                 EconomyManager.Instance.MoneyChanged -= Refresh;
-                _isSubscribed = false;
+                isSubscribed = false;
             }
         }
 
         private void TryBind()
         {
-            if (_isSubscribed || EconomyManager.Instance == null)
+            if (isSubscribed || EconomyManager.Instance == null)
             {
                 return;
             }
 
             EconomyManager.Instance.MoneyChanged += Refresh;
-            _isSubscribed = true;
+            isSubscribed = true;
             Refresh(EconomyManager.Instance.CurrentMoney);
+        }
+
+        private void TryFindReferences()
+        {
+            UiTextUtility.TryAssignFromComponent(this, ref moneyText, ref legacyMoneyText);
+            UiTextUtility.TryAssignFromCanvasChild("MoneyText", ref moneyText, ref legacyMoneyText);
         }
 
         private void Refresh(int value)
         {
-            if (moneyText == null)
-            {
-                return;
-            }
-
-            moneyText.text = $"{prefix}: {value:N0}원";
+            string content = $"{prefix}: {value:N0}원";
+            UiTextUtility.SetText(moneyText, legacyMoneyText, content);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using MiniMart.Core;
+using MiniMart.Core;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,10 +7,16 @@ namespace MiniMart.UI
 {
     public class CurrentDayUI : MonoBehaviour
     {
-        [SerializeField] private Text dayText;
+        [SerializeField] private TMP_Text dayText;
+        [SerializeField] private Text legacyDayText;
         [SerializeField] private string prefix = "Day";
 
-        private bool _isSubscribed;
+        private bool isSubscribed;
+
+        private void Awake()
+        {
+            TryFindReferences();
+        }
 
         private void OnEnable()
         {
@@ -18,12 +25,18 @@ namespace MiniMart.UI
 
         private void Start()
         {
+            TryFindReferences();
             TryBind();
         }
 
         private void Update()
         {
-            if (!_isSubscribed)
+            if (dayText == null && legacyDayText == null)
+            {
+                TryFindReferences();
+            }
+
+            if (!isSubscribed)
             {
                 TryBind();
             }
@@ -31,33 +44,35 @@ namespace MiniMart.UI
 
         private void OnDisable()
         {
-            if (_isSubscribed && GameManager.Instance != null)
+            if (isSubscribed && GameManager.Instance != null)
             {
                 GameManager.Instance.DayChanged -= Refresh;
-                _isSubscribed = false;
+                isSubscribed = false;
             }
         }
 
         private void TryBind()
         {
-            if (_isSubscribed || GameManager.Instance == null)
+            if (isSubscribed || GameManager.Instance == null)
             {
                 return;
             }
 
             GameManager.Instance.DayChanged += Refresh;
-            _isSubscribed = true;
+            isSubscribed = true;
             Refresh(GameManager.Instance.CurrentDay);
+        }
+
+        private void TryFindReferences()
+        {
+            UiTextUtility.TryAssignFromComponent(this, ref dayText, ref legacyDayText);
+            UiTextUtility.TryAssignFromCanvasChild("DayCount", ref dayText, ref legacyDayText);
         }
 
         private void Refresh(int day)
         {
-            if (dayText == null)
-            {
-                return;
-            }
-
-            dayText.text = $"{prefix} {Mathf.Max(0, day)}";
+            string content = $"{prefix} {Mathf.Max(0, day)}";
+            UiTextUtility.SetText(dayText, legacyDayText, content);
         }
     }
 }

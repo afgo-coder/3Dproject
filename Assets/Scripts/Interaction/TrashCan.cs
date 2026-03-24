@@ -14,6 +14,7 @@ namespace MiniMart.Interaction
 
         public int CurrentBottleCount { get; private set; }
         public int BottleValue => bottleValue;
+        public float PassiveBottleTimerSeconds => passiveBottleTimer;
 
         private void Start()
         {
@@ -57,12 +58,23 @@ namespace MiniMart.Interaction
         {
             AddBottle();
             UIFeedback.ShowStatus("손님이 공병을 버리고 갔습니다.");
+            SaveManager.Instance?.SaveGame();
+        }
+
+        public void RestoreState(int bottleCount, float passiveTimerSeconds)
+        {
+            CurrentBottleCount = Mathf.Max(0, bottleCount);
+            passiveBottleTimer = passiveBottleIntervalSeconds > 0f
+                ? Mathf.Clamp(passiveTimerSeconds, 0f, passiveBottleIntervalSeconds)
+                : 0f;
         }
 
         public void SettleDailyBottleReturn()
         {
             EconomyManager.Instance?.ApplyBottleReturnSettlement(CurrentBottleCount, bottleValue);
             CurrentBottleCount = 0;
+            passiveBottleTimer = passiveBottleIntervalSeconds;
+            SaveManager.Instance?.SaveGame();
         }
 
         private void AddBottle()

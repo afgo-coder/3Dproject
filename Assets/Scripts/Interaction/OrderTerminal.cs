@@ -1,5 +1,6 @@
-﻿using MiniMart.Data;
+using MiniMart.Data;
 using MiniMart.Managers;
+using MiniMart.Tutorial;
 using MiniMart.UI;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ namespace MiniMart.Interaction
         [SerializeField] private OrderTerminalUI terminalUI;
         [SerializeField] private StoreExpansionManager expansionManager;
         [SerializeField] private PlacementManager placementManager;
+        [SerializeField] private ShadowWorkerManager shadowWorkerManager;
 
         public override string GetInteractionPrompt()
         {
@@ -26,6 +28,7 @@ namespace MiniMart.Interaction
                 return;
             }
 
+            TutorialManager.Instance?.NotifyOrderTerminalOpened();
             terminalUI.Open(this);
         }
 
@@ -36,7 +39,7 @@ namespace MiniMart.Interaction
 
         public int GetOrderAmount()
         {
-            return orderAmount;
+            return orderAmount + (StoreProgressionManager.Instance != null ? StoreProgressionManager.Instance.GetAdditionalOrderAmount() : 0);
         }
 
         public StoreExpansionManager GetExpansionManager()
@@ -47,6 +50,11 @@ namespace MiniMart.Interaction
         public PlacementManager GetPlacementManager()
         {
             return placementManager;
+        }
+
+        public ShadowWorkerManager GetShadowWorkerManager()
+        {
+            return shadowWorkerManager;
         }
     }
 }

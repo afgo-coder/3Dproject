@@ -26,6 +26,33 @@ namespace MiniMart.Interaction
             remainingAmount = amount;
         }
 
+        public bool CanProvide(ProductData targetProduct)
+        {
+            return product == targetProduct && remainingAmount > 0;
+        }
+
+        public bool TryTakeOneForWorker()
+        {
+            if (product == null || remainingAmount <= 0)
+            {
+                return false;
+            }
+
+            OrderManager orderManager = FindFirstObjectByType<OrderManager>();
+            if (orderManager == null || !orderManager.TryTakeFromStorage(product, 1))
+            {
+                return false;
+            }
+
+            remainingAmount--;
+            if (remainingAmount <= 0)
+            {
+                Destroy(gameObject);
+            }
+
+            return true;
+        }
+
         public override void Interact(GameObject interactor)
         {
             PlayerInteractor playerInteractor = interactor.GetComponent<PlayerInteractor>();

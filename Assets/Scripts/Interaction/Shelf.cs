@@ -1,7 +1,9 @@
 using MiniMart.Customer;
 using MiniMart.Data;
 using MiniMart.Managers;
+using MiniMart.Tutorial;
 using MiniMart.UI;
+using TMPro;
 using UnityEngine;
 
 namespace MiniMart.Interaction
@@ -10,15 +12,42 @@ namespace MiniMart.Interaction
     {
         [SerializeField] private ProductData assignedProduct;
         [SerializeField] private int currentStock;
+        [SerializeField] private TextMeshPro priceLabel;
+        [SerializeField] private Vector3 priceLabelLocalPosition = new Vector3(0f, 1.05f, 0f);
+        [SerializeField] private Vector3 priceLabelLocalRotation = Vector3.zero;
+        [SerializeField] private float priceLabelFontSize = 3f;
 
         public ProductData AssignedProduct => assignedProduct;
         public int CurrentStock => currentStock;
         public int MaxStock => assignedProduct != null ? assignedProduct.maxShelfCapacity : 0;
+        public int MissingStock => Mathf.Max(0, MaxStock - currentStock);
+        public bool NeedsRestock => assignedProduct != null && currentStock < MaxStock;
+
+        private void Awake()
+        {
+            EnsurePriceLabel();
+            RefreshPriceLabel();
+        }
+
+        private void OnEnable()
+        {
+            EnsurePriceLabel();
+            RefreshPriceLabel();
+        }
+
+        private void OnValidate()
+        {
+            RefreshPriceLabel();
+        }
 
         public override string GetInteractionPrompt()
         {
-            string productName = assignedProduct == null ? "빈 선반" : assignedProduct.productName;
-            return $"[E] 선반: {productName} ({currentStock}/{MaxStock})";
+            if (assignedProduct == null)
+            {
+                return "[E] 선반: 빈 선반";
+            }
+
+            return $"[E] 선반: {assignedProduct.productName} ({currentStock}/{MaxStock}) / 판매가 {assignedProduct.salePrice:N0}원";
         }
 
         public override void Interact(GameObject interactor)
@@ -33,6 +62,7 @@ namespace MiniMart.Interaction
             if (assignedProduct == null)
             {
                 assignedProduct = playerInteractor.HeldProduct;
+                RefreshPriceLabel();
             }
 
             if (assignedProduct == null || playerInteractor.HeldProduct != assignedProduct)
@@ -53,8 +83,9 @@ namespace MiniMart.Interaction
             if (playerInteractor.TryConsumeHeldItem())
             {
                 currentStock++;
-                UIFeedback.ShowStatus(
-                    $"{assignedProduct.productName} 진열 완료. 선반 재고: {currentStock}/{MaxStock}");
+                SaveManager.Instance?.SaveGame();
+                TutorialManager.Instance?.NotifyShelfStocked();
+                UIFeedback.ShowStatus($"{assignedProduct.productName} 진열 완료. 선반 재고: {currentStock}/{MaxStock}");
             }
         }
 
@@ -72,8 +103,7 @@ namespace MiniMart.Interaction
 
             currentStock--;
             customer.ReceiveProduct(assignedProduct);
-            UIFeedback.ShowStatus(
-                $"손님이 {assignedProduct.productName}을(를) 집었습니다. 선반 재고: {currentStock}/{MaxStock}");
+            UIFeedback.ShowStatus($"손님이 {assignedProduct.productName}을(를) 집었습니다. 선반 재고: {currentStock}/{MaxStock}");
             return true;
         }
 
@@ -91,13 +121,80 @@ namespace MiniMart.Interaction
                 return false;
             }
 
-            if (!FindFirstObjectByType<OrderManager>().TryTakeFromStorage(assignedProduct, moveAmount))
+            OrderManager orderManager = FindFirstObjectByType<OrderManager>();
+            if (orderManager == null || !orderManager.TryTakeFromStorage(assignedProduct, moveAmount))
             {
                 return false;
             }
 
             currentStock += moveAmount;
+            SaveManager.Instance?.SaveGame();
             return true;
+        }
+
+        public bool TryRestockDirect(int amount)
+        {
+            if (assignedProduct == null || amount <= 0)
+            {
+                return false;
+            }
+
+            int freeSpace = MaxStock - currentStock;
+            int moveAmount = Mathf.Min(freeSpace, amount);
+            if (moveAmount <= 0)
+            {
+                return false;
+            }
+
+            currentStock += moveAmount;
+            SaveManager.Instance?.SaveGame();
+            return true;
+        }
+
+        public void RestoreState(ProductData product, int stock)
+        {
+            assignedProduct = product;
+            currentStock = Mathf.Max(0, stock);
+            RefreshPriceLabel();
+        }
+
+        private void EnsurePriceLabel()
+        {
+            if (priceLabel != null)
+            {
+                return;
+            }
+
+            Transform existing = transform.Find("AutoPriceLabel");
+            if (existing != null)
+            {
+                priceLabel = existing.GetComponent<TextMeshPro>();
+                if (priceLabel != null)
+                {
+                    return;
+                }
+            }
+
+            GameObject labelObject = new GameObject("AutoPriceLabel");
+            labelObject.transform.SetParent(transform, false);
+            priceLabel = labelObject.AddComponent<TextMeshPro>();
+            priceLabel.alignment = TextAlignmentOptions.Center;
+            priceLabel.color = Color.white;
+            priceLabel.enableWordWrapping = false;
+            priceLabel.transform.localScale = Vector3.one * 0.1f;
+        }
+
+        private void RefreshPriceLabel()
+        {
+            if (priceLabel == null)
+            {
+                return;
+            }
+
+            priceLabel.transform.localPosition = priceLabelLocalPosition;
+            priceLabel.transform.localEulerAngles = priceLabelLocalRotation;
+            priceLabel.fontSize = priceLabelFontSize;
+            priceLabel.text = assignedProduct != null ? $"{assignedProduct.salePrice:N0}원" : "가격 미정";
         }
     }
 }
