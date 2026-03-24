@@ -3,6 +3,7 @@ using MiniMart.Managers;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 namespace MiniMart.UI
 {
@@ -31,13 +32,21 @@ namespace MiniMart.UI
                 return;
             }
 
-            Canvas canvas = Object.FindFirstObjectByType<Canvas>();
-            if (canvas == null)
+            Canvas[] canvases = Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < canvases.Length; i++)
             {
-                return;
-            }
+                Canvas canvas = canvases[i];
+                if (canvas == null)
+                {
+                    continue;
+                }
 
-            TryAssignFromChild(canvas.transform, childName, ref tmpText, ref legacyText);
+                TryAssignFromChild(canvas.transform, childName, ref tmpText, ref legacyText);
+                if (HasReference(tmpText, legacyText))
+                {
+                    return;
+                }
+            }
         }
 
         public static void TryAssignFromChild(Transform parent, string childName, ref TMP_Text tmpText, ref Text legacyText)
@@ -48,6 +57,19 @@ namespace MiniMart.UI
             }
 
             Transform target = parent.Find(childName);
+            if (target == null)
+            {
+                Transform[] descendants = parent.GetComponentsInChildren<Transform>(true);
+                for (int i = 0; i < descendants.Length; i++)
+                {
+                    if (descendants[i] != null && descendants[i].name == childName)
+                    {
+                        target = descendants[i];
+                        break;
+                    }
+                }
+            }
+
             if (target == null)
             {
                 return;
@@ -121,35 +143,50 @@ namespace MiniMart.UI
         [SerializeField] private TMP_Text progressText;
         [SerializeField] private Text legacyProgressText;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void EnsureInstanceAfterSceneLoad()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void EnsureDriverExists()
         {
-            Canvas canvas = Object.FindFirstObjectByType<Canvas>();
-            if (canvas == null)
+            if (Object.FindFirstObjectByType<StoreProgressUI>() != null)
             {
                 return;
             }
 
-            Transform target = canvas.transform.Find("StoreProgressText");
-            if (target == null)
+            GameObject driver = new GameObject("StoreProgressUI");
+            Object.DontDestroyOnLoad(driver);
+            driver.AddComponent<StoreProgressUI>();
+        }
+
+        private static Transform FindChildRecursive(Transform parent, string childName)
+        {
+            if (parent == null || string.IsNullOrWhiteSpace(childName))
             {
-                return;
+                return null;
             }
 
-            if (target.GetComponent<StoreProgressUI>() == null)
+            Transform[] descendants = parent.GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < descendants.Length; i++)
             {
-                target.gameObject.AddComponent<StoreProgressUI>();
+                Transform current = descendants[i];
+                if (current != null && current.name == childName)
+                {
+                    return current;
+                }
             }
+
+            return null;
         }
 
         private void Awake()
         {
+            DontDestroyOnLoad(gameObject);
             TryFindReferences();
             Refresh();
         }
 
         private void OnEnable()
         {
+            SceneManager.sceneLoaded -= HandleSceneLoaded;
+            SceneManager.sceneLoaded += HandleSceneLoaded;
             if (StoreProgressionManager.Instance != null)
             {
                 StoreProgressionManager.Instance.ProgressionChanged -= Refresh;
@@ -169,6 +206,7 @@ namespace MiniMart.UI
 
         private void OnDisable()
         {
+            SceneManager.sceneLoaded -= HandleSceneLoaded;
             if (StoreProgressionManager.Instance != null)
             {
                 StoreProgressionManager.Instance.ProgressionChanged -= Refresh;
@@ -191,6 +229,14 @@ namespace MiniMart.UI
             Refresh();
         }
 
+        private void HandleSceneLoaded(Scene _, LoadSceneMode __)
+        {
+            progressText = null;
+            legacyProgressText = null;
+            TryFindReferences();
+            Refresh();
+        }
+
         private void HandleGameStateChanged(int _)
         {
             Refresh();
@@ -203,12 +249,16 @@ namespace MiniMart.UI
 
         private void TryFindReferences()
         {
-            UiTextUtility.TryAssignFromComponent(this, ref progressText, ref legacyProgressText);
             UiTextUtility.TryAssignFromCanvasChild("StoreProgressText", ref progressText, ref legacyProgressText);
         }
 
         private void Refresh()
         {
+            if (!UiTextUtility.HasReference(progressText, legacyProgressText))
+            {
+                TryFindReferences();
+            }
+
             bool shouldHide = GameManager.Instance != null && GameManager.Instance.IsModalOpen;
             UiTextUtility.SetVisible(progressText, legacyProgressText, !shouldHide);
             if (shouldHide)

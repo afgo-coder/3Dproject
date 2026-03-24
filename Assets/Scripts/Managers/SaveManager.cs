@@ -211,7 +211,32 @@ namespace MiniMart.Managers
             }
 
             MiniMartSaveData data = JsonUtility.FromJson<MiniMartSaveData>(json);
-            return data != null;
+            return data != null && IsMeaningfulProgress(data);
+        }
+
+        private static bool IsMeaningfulProgress(MiniMartSaveData data)
+        {
+            if (data == null)
+            {
+                return false;
+            }
+
+            return data.currentDay > 0 ||
+                   data.expansionLevel > 0 ||
+                   data.stockerCount > 0 ||
+                   data.cashierCount > 0 ||
+                   data.dailySales > 0 ||
+                   data.dailyCustomersServed > 0 ||
+                   data.lifetimeSales > 0 ||
+                   data.lifetimeCustomers > 0 ||
+                   data.totalGoalsCompleted > 0 ||
+                   data.storageEntries.Count > 0 ||
+                   data.buildSlots.Count > 0 ||
+                   data.dailySoldProducts.Count > 0 ||
+                   data.tutorialOpenedOrderTerminal ||
+                   data.tutorialPlacedOrder ||
+                   data.tutorialStockedShelf ||
+                   data.tutorialCompletedCheckout;
         }
 
         private MiniMartSaveData BuildSaveData()
